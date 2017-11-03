@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no"/>			
+		<title>营销场景</title>
+		<link rel="stylesheet" type="text/css" href="./css/common/reset.css"/>
+		<link rel="stylesheet" type="text/css" href="./css/index.css"/>
+	</head>
+	<body>
+		<div id="wrap">
+			<canvas></canvas>
+			<div class="audio">
+				<audio src="audio/The monster.mp3" loop></audio>
+			</div>
+			<ul class="list">
+				<li class="active">
+					<div class="content">
+						<p>大河之剑天上来</p>
+						<p>明媚如风，轻盈似箭</p>
+						<p>超出三界之外，不在五行之中</p>
+						<p>到达胜利之前，绝不回头</p>
+						<p>你这磨人的小妖精~~</p>
+						<p>想我祈求怜悯吧，我会狠狠拒绝你</p>
+					</div>
+				</li>
+				<li>
+					<ul>
+						<li></li>
+						<li></li>
+						<li></li>
+						<li></li>
+						<li></li>
+						<li></li>
+					</ul>
+				</li>
+				<li class="three">
+					<p>
+						<span class="rotateThree">
+							三列的发家啊上岛咖，啡两节课是的，发髻是的发髻埃里克是的的法兰，绿能 生死看淡解放路开始是咖啡色，解放路会计法
+						</span>
+					</p>
+				</li>
+				<li>
+					<div class="css3">
+						transform  transition  rotate  scale  translate  keyframes animation  webkitTransitionEnd webkitAnimationIteration elapsedTime perspective…
+					</div>
+					<div class="canvas">
+						drawImage lineWidth  strokeStyle  lineCap  globalCompositeOperation  moveTo   lineTo  stroke  arc  getImageData…
+					</div>
+					<div class="html5">
+						audio autoplay loop  paused  play  pause…
+					</div>
+				</li>
+				<li></li>
+			</ul>
+			<div class="arrow"></div>
+		</div>
+	</body>
+	<script type="text/javascript" src="./js/zepto.js"></script>
+	<script type="text/javascript" src="./js/touch.js"></script>
+	<script type="text/javascript">
+		//禁止系统默认行为
+		document.addEventListener('touchstart',function (ev) {
+			ev = ev || event;
+			ev.preventDefault();
+		});
+		//viewport适配
+		(function(){
+			var htmlW = document.documentElement.clientWidth;
+			var targetW = 640;
+			var scale = htmlW / targetW;
+			var metaEl = document.querySelector('meta[name="viewport"]');
+			metaEl.setAttribute('content','initial-scale=' + scale);
+		})();
+		
+		$(function(){
+			var $list = $('#wrap .list')[0];
+			var liNodes = $('#wrap .list > li');
+			var $contents = $("#wrap .list li .content p");
+			var $three = $("#wrap .list .three p .rotateThree");
+			var $hourDivs = $('#wrap .list > li').eq(3).children();
+			var $twoLis = $('#wrap .list li ul li');
+			var $music = $('#wrap .audio');
+			var audio = $('#wrap .audio audio')[0];
+			var index = 0;
+			var preIndex = 4;
+			var nextIndex = 1;
+			
+			slideImg();
+			function slideImg(){
+				liNodes[preIndex].classList.add('prevent');		
+				liNodes[nextIndex].classList.add('next');	
+				drag($list);
+			}
+			function drag (wrap) {
+				var startY = 0;
+				var disY = 0;
+				var scale = 0;
+				wrap.addEventListener('touchstart',function(ev){
+					var touch = ev.changedTouches[0];
+					startY = touch.clientY;
+					disY = 0;
+					liNodes.css('transition','0s all');
+				});
+				wrap.addEventListener('touchmove',function(ev){
+					var touch = ev.changedTouches[0];
+					var height = document.documentElement.clientHeight;
+					var endY = touch.clientY;
+					disY = endY - startY;
+					scale = (height - Math.abs(disY)/5) / height;
+					liNodes[index].style.transform = 'translateY(' + (disY * scale/5) + 'px) scale('+ scale +')';
+					liNodes[preIndex].style.transform = 'translateY(' + (-height + disY) + 'px)';
+					liNodes[nextIndex].style.transform = 'translateY(' + (height + disY) + 'px)';
+				});
+				wrap.addEventListener('touchend',function(ev){
+					var touch = ev.changedTouches[0];
+					if (disY > 0) {
+						liNodes.css('transition','');      //启用默认过渡
+						liNodes[nextIndex].style.transform = '';
+						liNodes[nextIndex].classList.remove('next');
+
+						//当前页退场
+						liNodes[index].style.transform = 'translateY(' + (disY * scale/2) + 'px) scale('+ scale +')';
+						liNodes[index].style.zIndex = 1;
+						//过渡完毕执行的回调
+						function myGod() {
+							this.style.transition = '0s all';
+							this.style.transform = '';    //过渡结束使用默认样式，即回到原来的位置
+							this.style.zIndex = '';
+							this.classList.remove('active');
+							this.classList.add('next');
+							console.log(index);
+							index !== 4 && enterAni[index]['in']();
+							this.removeEventListener('transitionend',myGod);    //解除过渡结束事件
+						}
+						liNodes[index].addEventListener('transitionend',myGod);
+						
+						//上屏出场，清除内联样式，通过添加过渡类实现动画
+						liNodes[preIndex].style.transform = '';
+						liNodes[preIndex].classList.remove('prevent');
+						liNodes[preIndex].classList.add('active');         
+						
+						//修改index的值
+						index =  --index < 0 ? liNodes.length - 1 : index;
+						preIndex = index === 0 ? liNodes.length - 1 : index - 1;
+						nextIndex = index === liNodes.length - 1 ? 0 : index + 1; 
+
+						//新的上一屏
+						liNodes[preIndex].classList.add('prevent');
+						liNodes[preIndex].style.transition = '0s all';						
+					} else if (disY < 0) {
+						liNodes.css('transition','');      //启用默认过渡
+						liNodes[preIndex].style.transform = '';
+						liNodes[preIndex].classList.remove('prevent');
+
+						//当前页退场
+						liNodes[index].style.transform = 'translateY(' + (disY * scale/2) + 'px) scale('+ scale +')';
+						liNodes[index].style.zIndex = 1;
+						//过渡完毕执行的回调
+						function myGod() {
+							this.style.transition = '0s all';
+							this.style.transform = '';    //过渡结束使用默认样式，即回到原来的位置
+							this.style.zIndex = '';
+							this.classList.remove('active');
+							this.classList.add('prevent');
+							console.log(index);
+							index !== 4 && enterAni[index]['in']();
+							this.removeEventListener('transitionend',myGod);    //解除过渡结束事件
+						}
+						liNodes[index].addEventListener('transitionend',myGod);
+						
+						//下屏出场，清除内联样式，通过添加过渡类实现动画
+						liNodes[nextIndex].style.transform = '';
+						liNodes[nextIndex].classList.remove('next');
+						liNodes[nextIndex].classList.add('active');
+						
+						//修改index的值
+						index =  ++index >= liNodes.length ? 0 : index;
+						preIndex = index === 0 ? liNodes.length - 1 : index - 1;
+						nextIndex = index === liNodes.length - 1 ? 0 : index + 1; 
+
+						//新的下一屏
+						liNodes[nextIndex].classList.add('next');
+						liNodes[nextIndex].style.transition = '0s all';
+					}
+				});
+			}
+			
+			
+			$music.click(music);
+			//music
+			function music(){
+				if (audio.paused) {
+					audio.play();
+					$music.addClass('active');
+				} else {
+					audio.pause();
+					$music.removeClass('active');
+				}
+			}
+			
+			var enterAni = [
+				{
+					'in': function () {
+						$contents.hide();
+						$contents.css('visibility','visible');
+						setTimeout(function(){
+							$contents.show();
+						},100);
+					}
+				},
+				{
+					'in': function(){
+						$twoLis.css('transform','');
+						$twoLis.css('transition','none');
+						setTimeout(function(){
+							$twoLis.css('transition','');
+							for (var i = 0; i < $twoLis.length; i++) {
+								var deg = 60;
+								var x = Math.sin(deg * i * Math.PI / 180) * 240 ;
+								var y = Math.cos(deg * i * Math.PI / 180) * 240 ;
+								$($twoLis[i]).css('transform','translate(' + x + 'px,' + y + 'px) rotateZ(720deg)');
+							}
+						},100);
+					}
+				},
+				{
+					'in': function(){
+						$three.removeClass('rotateThree');
+						setTimeout(function(){
+							$three.addClass('rotateThree');
+						},100);
+					}
+				},
+				{
+					'in': function(){
+						$hourDivs.css('transition','');
+						$hourDivs.css('width','0');
+						$hourDivs.css('height','0');
+						setTimeout(function(){
+							$hourDivs.css('visibility','visible');
+							$hourDivs.css('transition','1s width, 1s height, 1s display');
+							$hourDivs.css('width','');
+							$hourDivs.css('height','');
+						},100);
+					}
+				}
+			];
+			
+			canvas();
+			function canvas() {
+				var oc = document.querySelector('canvas');
+				if (oc.getContext) {
+					oc.width = document.documentElement.clientWidth;
+					oc.height = document.documentElement.clientHeight;
+					var ctx = oc.getContext('2d');
+					var img = new Image();
+					img.src = 'img/a.png';
+					img.onload = function () {
+						draw(this);
+					}
+				}
+				
+				function draw (img) {
+					ctx.drawImage(img,0,0,oc.width,oc.height);
+					oc.addEventListener('touchstart', function (ev) {
+						ev = ev || event;
+						var touchC = ev.changedTouches[0];
+						var x = touchC.clientX;
+						var y = touchC.clientY;
+						
+						ctx.globalCompositeOperation = 'destination-out';
+						ctx.lineWidth = 80;
+						ctx.lineCap = 'round';
+						ctx.lineJoin = 'round';
+						ctx.beginPath();
+						ctx.moveTo(x,y);
+						ctx.lineTo(x + 1, y + 1);
+						ctx.stroke();
+					});
+					oc.addEventListener('touchmove', function (ev) {
+						ev = ev || event;
+						var touchC = ev.changedTouches[0];
+						var x = touchC.clientX;
+						var y = touchC.clientY;
+						ctx.lineTo(x + 1, y + 1);
+						ctx.stroke();
+					});
+					oc.addEventListener('touchend', function () {
+						var imgData = ctx.getImageData(0,0,oc.width,oc.height);
+						var allPx = imgData.width * imgData.height;
+						var flag = 0;
+						for (var i = 0; i < allPx; i++) {
+							if (imgData.data[i * 4 + 3] === 0) {
+								flag++;
+							}
+						}
+						if (flag >= allPx/2) {
+							oc.style.opacity = 0;
+						}
+						oc.addEventListener('transitionend',function () {
+							this.remove();
+							music();     //canvas清除之后启动音乐
+							enterAni[0]['in']();//第一屏动画启动
+						});
+					});
+				}
+			}
+		});
+	</script>	
+</html>
